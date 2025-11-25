@@ -3,7 +3,10 @@
 This project acts as a middleware between a camera source (Webcam, NDI, or File) and TouchDesigner. It uses YOLO11 for person detection and tracking, sending the data via OSC.
 
 ## Features
-- **High Performance:** Uses YOLO11 Nano and ONNX Runtime (GPU accelerated if available).
+- **High Performance:** Uses YOLO11 Nano and ONNX Runtime (GPU accelerated if available), now with **FP16** support.
+- **Smart Resource Management:** Skips expensive video decoding when exceeding target FPS to minimize CPU usage.
+- **Batched OSC:** Sends all detections in a single bundled message to reduce network overhead.
+- **Resolution Control:** Dedicated flags to reduce camera resolution at the hardware level for lower CPU load.
 - **Flexible Input:** Supports Webcam, NDI (Network), and Video Files.
 - **Tracking:** Implements BoT-SORT for persistent ID tracking.
 - **Output:** Sends normalized coordinates via OSC to TouchDesigner.
@@ -58,8 +61,8 @@ This project is managed by `uv` and requires **Python 3.10+**.
     # Limit to 30 FPS (Reduces load)
     uv run main.py --max-fps 30
 
-    # Use Webcam (ID 0)
-    uv run main.py --source WEBCAM --cam-id 0
+    # Use Webcam (ID 0) with lower resolution
+    uv run main.py --source WEBCAM --cam-id 0 --width 640 --height 480
 
     # Use specific NDI Source Name
     uv run main.py --source NDI --ndi-name "MySource"
@@ -75,6 +78,8 @@ This project is managed by `uv` and requires **Python 3.10+**.
     | `--debug` | `False` | Enable preview window |
     | `--max-fps` | `None` | Limit processing FPS (e.g. 30). `0` or `None` for unlimited. |
     | `--cam-id` | `0` | Webcam Device ID |
+    | `--width` | `640` | Request Webcam Width (Lower = Faster) |
+    | `--height` | `480` | Request Webcam Height |
     | `--ndi-name` | `TD_OUTPUT` | NDI Sender Name to look for |
     | `--osc-ip` | `127.0.0.1` | OSC Target IP |
     | `--osc-port` | `9000` | OSC Target Port |
@@ -84,7 +89,26 @@ This project is managed by `uv` and requires **Python 3.10+**.
 
 4.  **TouchDesigner Setup:**
     - Create an **OSC In DAT** listening on port `9000`.
-    - Use the callback script provided in the docs (or PDD) to parse data.
+    - **Data Format (Batched):** The server sends a single OSC message to `/face` containing a flat list of all detections for that frame.
+    - **Structure:** `[id, x, y, w, h, id, x, y, w, h, ...]`
+    - **Parsing Example (Python in TD):**
+      ```python
+      def onReceiveOSC(dat, rowIndex, message, headers, time, peer):
+          args = message.arguments
+          num_vals = 5 # id, x, y, w, h
+          
+          # Clear old data here if needed
+          
+          # Iterate in chunks of 5
+          for i in range(0, len(args), num_vals):
+              if i + num_vals <= len(args):
+                  track_id = args[i]
+                  x = args[i+1]
+                  y = args[i+2]
+                  w = args[i+3]
+                  h = args[i+4]
+                  # Use data...
+      ```
 
 ## Troubleshooting
 

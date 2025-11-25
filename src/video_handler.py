@@ -10,10 +10,12 @@ except ImportError:
     print("⚠️ NDIlib not found. NDI source will not work. Install ndi-python.")
 
 class VideoHandler:
-    def __init__(self, source_type, cam_id=0, target_fps=60, video_file="data/vid1.mp4", ndi_source_name="TD_OUTPUT"):
+    def __init__(self, source_type, cam_id=0, target_fps=60, width=640, height=480, video_file="data/vid1.mp4", ndi_source_name="TD_OUTPUT"):
         self.type = source_type
         self.cam_id = cam_id
         self.target_fps = target_fps
+        self.width = width
+        self.height = height
         self.video_file = video_file
         self.ndi_source_name = ndi_source_name
         
@@ -25,6 +27,8 @@ class VideoHandler:
         if self.type == "WEBCAM":
             self.cap = cv2.VideoCapture(self.cam_id)
             self.cap.set(cv2.CAP_PROP_FPS, self.target_fps)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
             # Disable buffer to ensure lowest latency
             self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             
@@ -79,13 +83,22 @@ class VideoHandler:
                 ndi.find_destroy(ndi_find)
                 raise RuntimeError("❌ No NDI Sources Found.")
 
-    def get_frame(self):
+    def get_frame(self, decode=True):
         if self.type == "WEBCAM" or self.type == "FILE":
-            ret, frame = self.cap.read()
+            if decode:
+                ret, frame = self.cap.read()
+            else:
+                ret = self.cap.grab()
+                frame = None
+
             if self.type == "FILE" and not ret:
                 # Loop video
                 self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                ret, frame = self.cap.read()
+                if decode:
+                    ret, frame = self.cap.read()
+                else:
+                    ret = self.cap.grab()
+                    frame = None
             return ret, frame
         elif self.type == "NDI":
             if ndi is None: return False, None
@@ -94,6 +107,10 @@ class VideoHandler:
             t, v, _, _ = ndi.recv_capture_v2(self.ndi_recv, 50) 
             
             if t == ndi.FRAME_TYPE_VIDEO:
+                if not decode:
+                    ndi.recv_free_video_v2(self.ndi_recv, v)
+                    return True, None
+
                 frame = np.copy(np.frombuffer(v.data, dtype=np.uint8))
                 
                 # UYVY (default NDI) to BGR

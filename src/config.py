@@ -10,6 +10,8 @@ DEFAULT_SOURCE_TYPE = "NDI"
 # WEBCAM SETTINGS
 DEFAULT_CAM_ID = 0                  # 0 = Default, 1 = External
 DEFAULT_TARGET_FPS = 60             # Request Hardware FPS
+DEFAULT_WIDTH = 640                 # Request Hardware Width (Lower = Faster)
+DEFAULT_HEIGHT = 480                # Request Hardware Height
 DEFAULT_MAX_FPS = 30                # Limit processing FPS (None = Unlimited)
 
 # FILE SETTINGS (If using FILE source)
@@ -21,7 +23,7 @@ DEFAULT_NDI_SOURCE_NAME = "TD_OUTPUT"  # Name of sender in TouchDesigner
 # OSC OUTPUT (To TouchDesigner)
 DEFAULT_OSC_IP = "127.0.0.1"
 DEFAULT_OSC_PORT = 9000
-DEFAULT_OSC_ADDRESS = "/face"
+DEFAULT_OSC_ADDRESS = "/yolo"
 
 # AI MODEL SETTINGS
 DEFAULT_MODEL_BASE = 'yolo11n'      # The model version (Nano is fastest)
@@ -43,6 +45,8 @@ def parse_arguments():
     # Webcam
     parser.add_argument("--cam-id", type=int, default=DEFAULT_CAM_ID, help="Webcam ID (if source is WEBCAM)")
     parser.add_argument("--fps", type=int, default=DEFAULT_TARGET_FPS, help="Target FPS for webcam")
+    parser.add_argument("--width", type=int, default=DEFAULT_WIDTH, help="Target Width for webcam")
+    parser.add_argument("--height", type=int, default=DEFAULT_HEIGHT, help="Target Height for webcam")
     
     # File
     parser.add_argument("--video-file", type=str, default=DEFAULT_VIDEO_FILE, help="Path to video file (if source is FILE)")
