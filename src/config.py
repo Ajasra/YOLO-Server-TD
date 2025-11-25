@@ -31,6 +31,7 @@ DEFAULT_USE_ONNX = True             # True = Convert to ONNX for speed boost
 DEFAULT_CONFIDENCE = 0.5            # Sensitivity (0.1 = Low, 0.9 = High)
 DEFAULT_CLASSES = [0]               # 0 = Person. Set to None for all objects.
 DEFAULT_CPU_CORES = None            # List of CPU cores to use (e.g. [0, 1, 2, 3]). None = All cores.
+DEFAULT_PRECISION = "fp16"          # fp16 = Half Precision (Faster on GPU), fp32 = Full Precision
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="YOLOv8/11 Object Detection with OSC Output")
@@ -65,6 +66,7 @@ def parse_arguments():
     parser.add_argument("--conf", type=float, default=DEFAULT_CONFIDENCE, help="Confidence threshold (0.0 - 1.0)")
     parser.add_argument("--classes", type=int, nargs='+', default=DEFAULT_CLASSES, help="Class IDs to detect (space separated)")
     parser.add_argument("--cpu-cores", type=int, nargs='+', default=DEFAULT_CPU_CORES, help="Specific CPU cores to use (space separated)")
+    parser.add_argument("--precision", type=str, default=DEFAULT_PRECISION, choices=["fp16", "fp32"], help="Inference precision (fp16=Half, fp32=Full)")
 
     return parser.parse_args()
 

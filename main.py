@@ -32,6 +32,7 @@ def main():
     CLASSES = args.classes
     CPU_CORES = args.cpu_cores
     DEBUG_MODE = args.debug
+    PRECISION = args.precision
 
     client = udp_client.SimpleUDPClient(OSC_IP, OSC_PORT)
     
@@ -85,6 +86,7 @@ def main():
             # persist=True: Vital for tracking IDs
             # verbose=False: Keeps console clean
             # half=True: Use FP16 if available (mostly GPU)
+            use_half = (PRECISION == "fp16" and device != 'cpu')
             results = model.track(
                 frame, 
                 persist=True, 
@@ -92,7 +94,7 @@ def main():
                 conf=CONFIDENCE, 
                 classes=CLASSES,
                 device=device,
-                half=(device != 'cpu')
+                half=use_half
             )
 
             # --- PARSING & SENDING (BATCHED) ---

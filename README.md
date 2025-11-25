@@ -85,29 +85,46 @@ This project is managed by `uv` and requires **Python 3.10+**.
     | `--osc-port` | `9000` | OSC Target Port |
     | `--conf` | `0.5` | Detection Confidence Threshold |
     | `--classes` | `0` | Class IDs to detect (space separated) |
+    | `--precision` | `fp16` | `fp16` (Half) or `fp32` (Full). FP16 is faster on GPU. |
     | `--no-onnx` | `False` | Force PyTorch instead of ONNX |
 
 4.  **TouchDesigner Setup:**
+    - **Example File:** Check `TD/yolo.tox` included in the project for a complete example.
     - Create an **OSC In DAT** listening on port `9000`.
-    - **Data Format (Batched):** The server sends a single OSC message to `/face` containing a flat list of all detections for that frame.
+    - **Data Format (Batched):** The server sends a single OSC message to `/yolo` containing a flat list of all detections for that frame.
     - **Structure:** `[id, x, y, w, h, id, x, y, w, h, ...]`
     - **Parsing Example (Python in TD):**
       ```python
-      def onReceiveOSC(dat, rowIndex, message, headers, time, peer):
-          args = message.arguments
-          num_vals = 5 # id, x, y, w, h
-          
-          # Clear old data here if needed
-          
-          # Iterate in chunks of 5
-          for i in range(0, len(args), num_vals):
-              if i + num_vals <= len(args):
-                  track_id = args[i]
+      # Script in OSC In DAT Callbacks
+      # Requires a Table DAT named 'data'
+      
+      tab = op('data')
+      
+      def onReceiveOSC(dat, rowIndex, message, byteData, timeStamp, address, args, peer):
+          if address == "/yolo":
+              # Initialize table if empty
+              if tab.numRows == 0:
+                  tab.appendRow(['id', 'tx', 'ty', 'sx', 'sy', 'life'])
+
+              # args = [id, x, y, w, h, id, x, y, w, h, ...]
+              for i in range(0, len(args), 5):
+                  f_id = int(args[i])
                   x = args[i+1]
                   y = args[i+2]
                   w = args[i+3]
                   h = args[i+4]
-                  # Use data...
+                  
+                  # Check if this ID is already in the table
+                  if tab.row(str(f_id)):
+                      # Update existing user
+                      tab[str(f_id), 'tx'] = x
+                      tab[str(f_id), 'ty'] = y
+                      tab[str(f_id), 'sx'] = w
+                      tab[str(f_id), 'sy'] = h
+                      tab[str(f_id), 'life'] = 10
+                  else:
+                      # Create new user
+                      tab.appendRow([f_id, x, y, w, h, 10])
       ```
 
 ## Troubleshooting
