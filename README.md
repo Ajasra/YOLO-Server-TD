@@ -18,7 +18,7 @@ This project acts as a middleware between a camera source (Webcam, NDI, or File)
     - **CUDA 12.1** capable GPU
     - Drivers: [NVIDIA Driver Downloads](https://www.nvidia.com/download/index.aspx)
 - NDI Tools (Optional, for NDI support)
-    - **Note:** You must install the [NDI SDK](https://ndi.video/tech/) for NDI support to work.
+    - **Note:** You must install the [NDI SDK](https://ndi.video/tech/) and the Python wrapper to use NDI.
 
 ## Installation & Setup
 
@@ -30,15 +30,17 @@ This project is managed by `uv` and requires **Python 3.10+**.
     ```
 
 2.  **Sync Dependencies:**
-    In the project folder, run:
+    
+    **Standard Installation (Webcam/File only):**
     ```powershell
     uv sync
     ```
-    This creates the virtual environment and installs all required packages, including **PyTorch with CUDA 12.1 support** and **ONNX Runtime GPU**.
-
-    *Note:* If `ndi-python` fails to install:
-    1. Ensure you have the NDI SDK installed (check `$env:NDI_SDK_DIR`).
-    2. Ensure `cmake` is installed (`winget install Kitware.CMake` or `pip install cmake`).
+    
+    **Installation with NDI Support:**
+    ```powershell
+    uv sync --extra ndi
+    ```
+    *Note:* For NDI support, ensure you have the [NDI SDK](https://ndi.video/tech/) installed. If `ndi-python` fails to install, ensure `cmake` is installed (`winget install Kitware.CMake` or `pip install cmake`).
 
 ## Usage
 
@@ -64,7 +66,7 @@ This project is managed by `uv` and requires **Python 3.10+**.
     # Use Webcam (ID 0) with lower resolution
     uv run main.py --source WEBCAM --cam-id 0 --width 640 --height 480
 
-    # Use specific NDI Source Name
+    # Use specific NDI Source Name (Requires NDI installation)
     uv run main.py --source NDI --ndi-name "MySource"
 
     # Detect specific classes (0=Person, 67=Cell Phone)
@@ -74,7 +76,7 @@ This project is managed by `uv` and requires **Python 3.10+**.
 3.  **Full Argument List:**
     | Argument | Default | Description |
     | :--- | :--- | :--- |
-    | `--source` | `NDI` | Input source: `NDI`, `WEBCAM`, or `FILE` |
+    | `--source` | `WEBCAM` | Input source: `NDI`, `WEBCAM`, or `FILE` |
     | `--debug` | `False` | Enable preview window |
     | `--max-fps` | `None` | Limit processing FPS (e.g. 30). `0` or `None` for unlimited. |
     | `--cam-id` | `0` | Webcam Device ID |
@@ -131,5 +133,5 @@ This project is managed by `uv` and requires **Python 3.10+**.
 
 - **Reshape Error (819...):** If you see a massive number in a reshape error, ensure `simplify=False` is set in the export options in `main.py`.
 - **Falling back to CPU:** Check that your NVIDIA drivers are up to date. The project is configured for CUDA 12.1.
-- **NDI Issues:** If `NDIlib` is missing, NDI source will be disabled. ensure NDI SDK is installed.
+- **NDI Issues:** If you see `ImportError` or NDI failures, make sure you ran `uv sync --extra ndi` and have the NDI SDK installed.
 - **Performance:** If running slow, ensure `onnxruntime-gpu` is effectively using your GPU (check CUDA drivers).

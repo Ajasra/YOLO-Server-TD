@@ -5,7 +5,7 @@ import argparse
 # ==========================================
 
 # INPUT SOURCE: "WEBCAM", "NDI", or "FILE"
-DEFAULT_SOURCE_TYPE = "NDI" 
+DEFAULT_SOURCE_TYPE = "WEBCAM" 
 
 # WEBCAM SETTINGS
 DEFAULT_CAM_ID = 0                  # 0 = Default, 1 = External
