@@ -53,7 +53,10 @@ def load_model(model_base, use_onnx=True, cpu_cores=None):
                 print("   1. 'onnxruntime' is installed instead of (or alongside) 'onnxruntime-gpu'")
                 print("   2. CUDA/cuDNN libraries are missing or incompatible with this ONNX Runtime version.")
         except ImportError:
-            pass
+            print("⚠️ ONNX Runtime not found (onnxruntime).")
+            print("   To enable ONNX acceleration, run: uv sync --extra gpu (or --extra cpu)")
+            print("   Falling back to standard PyTorch model.")
+            return YOLO(pt_file), device
 
         # If ONNX file doesn't exist, create it
         if not os.path.exists(onnx_file):

@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "cmake>=4.2.0",
     "onnx>=1.19.1",
-    "onnxruntime-gpu>=1.23.2",
     "opencv-python>=4.12.0.88",
     "python-osc>=1.9.3",
     "ultralytics>=8.3.231",
@@ -20,7 +19,16 @@ dependencies = [
 ndi = [
     "ndi-python==5.1.1.1",
 ]
+cpu = [
+    "onnxruntime>=1.19.2",
+]
+gpu = [
+    "onnxruntime-gpu>=1.23.2",
+]
 
+# ⚠️ FOR LIGHTWEIGHT CPU-ONLY INSTALLATION:
+# 1. Change the URL above to: "https://download.pytorch.org/whl/cpu"
+# 2. Run: uv sync --extra cpu
 [[tool.uv.index]]
 name = "pytorch"
 url = "https://download.pytorch.org/whl/cu121"

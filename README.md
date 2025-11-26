@@ -31,16 +31,36 @@ This project is managed by `uv` and requires **Python 3.10+**.
 
 2.  **Sync Dependencies:**
     
-    **Standard Installation (Webcam/File only):**
+    Select the installation mode that matches your hardware needs:
+
+    **Option A: GPU Accelerated (Recommended for NVIDIA GPUs)**
+    *Requires CUDA 12.1 capable GPU.*
     ```powershell
-    uv sync
+    uv sync --extra gpu
     ```
-    
-    **Installation with NDI Support:**
+
+    **Option B: CPU Only (Slower, but universal)**
+    *Use this if you don't have a dedicated NVIDIA GPU.*
     ```powershell
-    uv sync --extra ndi
+    uv sync --extra cpu
     ```
+
+    **Option C: With NDI Support**
+    *Add `--extra ndi` to any command above.*
+    ```powershell
+    # Example: GPU + NDI
+    uv sync --extra gpu --extra ndi
+    ```
+
     *Note:* For NDI support, ensure you have the [NDI SDK](https://ndi.video/tech/) installed. If `ndi-python` fails to install, ensure `cmake` is installed (`winget install Kitware.CMake` or `pip install cmake`).
+
+### Advanced: Lightweight CPU-Only Installation
+The default configuration includes CUDA-enabled libraries (~2.5GB) to ensure compatibility. If you need a **lightweight** CPU-only installation (~200MB):
+
+1. Open `pyproject.toml`.
+2. Find the `[tool.uv.index]` section at the bottom.
+3. Change the URL to: `https://download.pytorch.org/whl/cpu`.
+4. Run: `uv sync --extra cpu`
 
 ## Usage
 
@@ -133,5 +153,6 @@ This project is managed by `uv` and requires **Python 3.10+**.
 
 - **Reshape Error (819...):** If you see a massive number in a reshape error, ensure `simplify=False` is set in the export options in `main.py`.
 - **Falling back to CPU:** Check that your NVIDIA drivers are up to date. The project is configured for CUDA 12.1.
+- **ONNX Runtime not found:** Run `uv sync --extra gpu` (or `cpu`) to install the inference engine.
 - **NDI Issues:** If you see `ImportError` or NDI failures, make sure you ran `uv sync --extra ndi` and have the NDI SDK installed.
 - **Performance:** If running slow, ensure `onnxruntime-gpu` is effectively using your GPU (check CUDA drivers).
